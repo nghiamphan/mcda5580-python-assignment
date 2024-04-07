@@ -26,7 +26,6 @@ def fetch_crypto(ticker: str, additional_ticker: str = None, timeframe: str = "1
     response = requests.get(url, params={"vs_currency": "usd", "days": days})
 
     if response.status_code == 429:
-        print(response.json())
         st.error(response.json()["status"]["error_message"])
     elif "prices" not in response.json():
         st.error("Invalid ticker")
@@ -86,32 +85,40 @@ def display_two_cryptos(ticker1: str, ticker2: str):
     st.plotly_chart(fig)
 
 
-compare_crypto = st.toggle("Compare cryptocurrencies")
-timeframe = st.radio(
-    "Timeline (CoinGecko API allows maximum of 1 year of historical data for free account)", ["1w", "1m", "3m", "1y"]
-)
+def streamlit_app():
+    st.set_page_config(page_title="Cryptocurrency Chart")
+    st.title("Cryptocurrency Chart")
 
-if not compare_crypto:
-    ticker = st.text_input("Enter the cryptocurrency ticker", "bitcoin")
-    st.button(
-        "Search",
-        on_click=fetch_crypto,
-        args=(ticker, None, timeframe),
-        type="primary",
+    compare_crypto = st.toggle("Compare cryptocurrencies")
+    timeframe = st.radio(
+        "Timeline (CoinGecko API allows maximum of 1 year of historical data for free account)",
+        ["1w", "1m", "3m", "1y"],
     )
 
-    if "df_crypto" in st.session_state:
-        display_one_crypto()
-else:
-    st.write("Enter the tickers of the cryptocurrencies you want to compare")
-    ticker1 = st.text_input("Enter the first cryptocurrency ticker", "bitcoin")
-    ticker2 = st.text_input("Enter the second cryptocurrency ticker", "ethereum")
-    st.button(
-        "Search",
-        on_click=fetch_crypto,
-        args=(ticker1, ticker2, timeframe),
-        type="primary",
-    )
+    if not compare_crypto:
+        ticker = st.text_input("Enter the cryptocurrency ticker", "bitcoin")
+        st.button(
+            "Search",
+            on_click=fetch_crypto,
+            args=(ticker, None, timeframe),
+            type="primary",
+        )
 
-    if "df_crypto" in st.session_state and "df_crypto_2" in st.session_state:
-        display_two_cryptos(ticker1, ticker2)
+        if "df_crypto" in st.session_state:
+            display_one_crypto()
+    else:
+        st.write("Enter the tickers of the cryptocurrencies you want to compare")
+        ticker1 = st.text_input("Enter the first cryptocurrency ticker", "bitcoin")
+        ticker2 = st.text_input("Enter the second cryptocurrency ticker", "ethereum")
+        st.button(
+            "Search",
+            on_click=fetch_crypto,
+            args=(ticker1, ticker2, timeframe),
+            type="primary",
+        )
+
+        if "df_crypto" in st.session_state and "df_crypto_2" in st.session_state:
+            display_two_cryptos(ticker1, ticker2)
+
+
+streamlit_app()
